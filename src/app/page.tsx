@@ -55,20 +55,45 @@ type WindowWithSpeech = Window & {
 function getInitialMessages(lang: LanguageMode): Message[] {
   switch (lang) {
     case "hindi":
-      return [{ role: "assistant", text: "नमस्ते। मैं किसान सहायक हूँ। फसल, कीट, सिंचाई या मौसम पर पूछें।" }];
+      return [
+        {
+          role: "assistant",
+          text: "नमस्ते! मैं किसान सहायक—आपका खेती साथी हूँ। फसल, कीट, सिंचाई, मिट्टी या मौसम पर पूछें। बेहतर सलाह के लिए फसल, अवस्था और स्थान बताएं।"
+        }
+      ];
     case "marathi":
-      return [{ role: "assistant", text: "नमस्कार। मी किसान सहाय्यक आहे. पिके, कीड, सिंचन किंवा हवामानाबद्दल विचारा." }];
+      return [
+        {
+          role: "assistant",
+          text: "नमस्कार! मी किसान सहाय्यक—तुमचा शेती साथी आहे. पिके, कीड, सिंचन, माती किंवा हवामानाबद्दल विचारा. चांगल्या सल्ल्यासाठी पीक, अवस्था आणि ठिकाण सांगा."
+        }
+      ];
     case "tamil":
-      return [{ role: "assistant", text: "வணக்கம். நான் கிசான் உதவியாளர். பயிர்கள், பூச்சி, பாசனம் அல்லது வானிலை பற்றி கேளுங்கள்." }];
+      return [
+        {
+          role: "assistant",
+          text: "வணக்கம்! நான் கிசான் உதவியாளர்—உங்கள் விவசாய துணை. பயிர்கள், பூச்சி, பாசனம், மண் அல்லது வானிலை பற்றி கேளுங்கள். சிறந்த ஆலோசனைக்கு பயிர், நிலை, இடம் கூறுங்கள்."
+        }
+      ];
     case "telugu":
-      return [{ role: "assistant", text: "నమస్తే. నేను కిసాన్ సహాయకుడు. పంటలు, కీటకాలు, నీటిపారుదల లేదా వాతావరణం గురించి అడగండి." }];
+      return [
+        {
+          role: "assistant",
+          text: "నమస్తే! నేను కిసాన్ సహాయకుడు—మీ వ్యవసాయ సహచరి. పంటలు, కీటకాలు, నీటిపారుదల, నేల లేదా వాతావరణం గురించి అడగండి. మెరుగైన సలహా కోసం పంట, దశ, స్థలం చెప్పండి."
+        }
+      ];
     case "punjabi":
-      return [{ role: "assistant", text: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ। ਮੈਂ ਕਿਸਾਨ ਸਹਾਇਕ ਹਾਂ। ਫਸਲਾਂ, ਕੀਟਾਂ, ਸਿੰਚਾਈ ਜਾਂ ਮੌਸਮ ਬਾਰੇ ਪੁੱਛੋ।" }];
+      return [
+        {
+          role: "assistant",
+          text: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਕਿਸਾਨ ਸਹਾਇਕ—ਤੁਹਾਡਾ ਖੇਤੀ ਸਾਥੀ ਹਾਂ। ਫਸਲਾਂ, ਕੀਟ, ਸਿੰਚਾਈ, ਮਿੱਟੀ ਜਾਂ ਮੌਸਮ ਬਾਰੇ ਪੁੱਛੋ। ਚੰਗੀ ਸਲਾਹ ਲਈ ਫਸਲ, ਦੌਰ ਅਤੇ ਥਾਂ ਦੱਸੋ।"
+        }
+      ];
     default:
       return [
         {
           role: "assistant",
-          text: "Namaste. I am Kisan Sahayak. Ask me about crops, pests, irrigation, or weather planning."
+          text: "Namaste! I’m Kisaan Sahayak—your farming partner. Ask about crops, pests, irrigation, soil, or weather. For sharper advice, share crop, stage, and location."
         }
       ];
   }
@@ -114,7 +139,7 @@ const translations: Record<LanguageMode, Record<string, string>> = {
     guestLeft: "Guest left",
     connected: "Connected",
     noConversations: "No conversations yet",
-    authTitle: "KisanSahayak AI",
+    authTitle: "Kisaan Sahayak AI",
     signOut: "Sign Out",
     createAccount: "Create Account",
     fullName: "Full Name",
@@ -126,7 +151,9 @@ const translations: Record<LanguageMode, Record<string, string>> = {
     register: "Register",
     voiceOn: "On",
     voiceOff: "Off",
-    historyHint: "Sign in to save chat history."
+    historyHint: "Sign in to save chat history.",
+    heroTitle: "Practical farming guidance, right when you need it",
+    heroSubtitle: "Crop care, pests, irrigation, soil health, and weather planning in one place."
   },
   hindi: {
     conversations: "बातचीत",
@@ -158,7 +185,9 @@ const translations: Record<LanguageMode, Record<string, string>> = {
     register: "रजिस्टर",
     voiceOn: "चालू",
     voiceOff: "बंद",
-    historyHint: "चैट इतिहास सहेजने के लिए साइन इन करें।"
+    historyHint: "चैट इतिहास सहेजने के लिए साइन इन करें।",
+    heroTitle: "ज़रूरत के समय व्यावहारिक खेती सलाह",
+    heroSubtitle: "फसल देखभाल, कीट, सिंचाई, मिट्टी और मौसम की योजना एक जगह।"
   },
   marathi: {
     conversations: "बातचीत",
@@ -190,7 +219,9 @@ const translations: Record<LanguageMode, Record<string, string>> = {
     register: "नोंदणी",
     voiceOn: "चालू",
     voiceOff: "बंद",
-    historyHint: "चॅट इतिहास साठवण्यासाठी साइन इन करा।"
+    historyHint: "चॅट इतिहास साठवण्यासाठी साइन इन करा।",
+    heroTitle: "वेळेवर मिळणारी उपयुक्त शेती मदत",
+    heroSubtitle: "पीक देखभाल, कीड, सिंचन, माती आणि हवामान नियोजन एकाच ठिकाणी."
   },
   tamil: {
     conversations: "உரையாடல்கள்",
@@ -222,7 +253,9 @@ const translations: Record<LanguageMode, Record<string, string>> = {
     register: "பதிவு",
     voiceOn: "ஆன்",
     voiceOff: "ஆஃப்",
-    historyHint: "அரட்டை வரலாற்றை சேமிக்க உள்நுழைக."
+    historyHint: "அரட்டை வரலாற்றை சேமிக்க உள்நுழைக.",
+    heroTitle: "உங்களுக்கு தேவையான நேரத்தில் பயனுள்ள விவசாய வழிகாட்டல்",
+    heroSubtitle: "பயிர் பராமரிப்பு, பூச்சிகள், பாசனம், மண், வானிலை திட்டமிடல் ஒரே இடத்தில்."
   },
   telugu: {
     conversations: "చర్చలు",
@@ -254,7 +287,9 @@ const translations: Record<LanguageMode, Record<string, string>> = {
     register: "రిజిస్టర్",
     voiceOn: "ఆన్",
     voiceOff: "ఆఫ్",
-    historyHint: "చాట్ చరిత్రను సేవ్ చేయడానికి సైన్ ఇన్ చేయండి."
+    historyHint: "చాట్ చరిత్రను సేవ్ చేయడానికి సైన్ ఇన్ చేయండి.",
+    heroTitle: "అవసరమైనప్పుడు అందే వ్యవసాయ మార్గనిర్దేశం",
+    heroSubtitle: "పంట సంరక్షణ, కీటకాలు, నీటిపారుదల, నేల, వాతావరణ ప్రణాళిక ఒకే చోట."
   },
   punjabi: {
     conversations: "ਗੱਲਬਾਤ",
@@ -286,7 +321,9 @@ const translations: Record<LanguageMode, Record<string, string>> = {
     register: "ਰਜਿਸਟਰ",
     voiceOn: "ਆਨ",
     voiceOff: "ਆਫ",
-    historyHint: "ਚੈਟ ਇਤਿਹਾਸ ਸੇਵ ਕਰਨ ਲਈ ਸਾਈਨ ਇਨ ਕਰੋ।"
+    historyHint: "ਚੈਟ ਇਤਿਹਾਸ ਸੇਵ ਕਰਨ ਲਈ ਸਾਈਨ ਇਨ ਕਰੋ।",
+    heroTitle: "ਜਦੋਂ ਲੋੜ ਹੋਵੇ ਤਦੋਂ ਵਰਤੋਂਯੋਗ ਖੇਤੀ ਮਦਦ",
+    heroSubtitle: "ਫਸਲ ਸੰਭਾਲ, ਕੀਟ, ਸਿੰਚਾਈ, ਮਿੱਟੀ ਅਤੇ ਮੌਸਮ ਯੋਜਨਾ ਇੱਕ ਹੀ ਥਾਂ।"
   }
 };
 
@@ -320,6 +357,7 @@ export default function Home() {
   const chatEndRef = useRef<HTMLDivElement | null>(null);
   const lastUserMessageRef = useRef<string | null>(null);
   const lastAssistantMessageRef = useRef<string | null>(null);
+  const requestIdRef = useRef(0);
 
   const guestLimit = useMemo(() => Number(process.env.NEXT_PUBLIC_GUEST_QUERY_LIMIT || "5"), []);
   const [used, setUsed] = useState(0);
@@ -605,6 +643,7 @@ export default function Home() {
     const followUpHint = isFollowUpHint(userText);
     const payloadMessage = elaborateHint && lastUserMessageRef.current ? lastUserMessageRef.current : userText;
 
+    const requestId = (requestIdRef.current += 1);
     setInput("");
     setMessages((prev) => [...prev, { role: "user", text: userText }]);
     setLoading(true);
@@ -633,6 +672,7 @@ export default function Home() {
       }
 
       const data = await res.json();
+      if (requestId !== requestIdRef.current) return;
       const assistantText = data.reply || "No response";
       setMessages((prev) => [...prev, { role: "assistant", text: assistantText }]);
       speakText(assistantText);
@@ -653,8 +693,10 @@ export default function Home() {
         setUsed(nextUsed);
       }
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setError(err instanceof Error ? err.message : language === "hindi" ? "अज्ञात त्रुटि" : "Unknown error");
     } finally {
+      if (requestId !== requestIdRef.current) return;
       setLoading(false);
     }
   }
@@ -701,6 +743,22 @@ export default function Home() {
     setMessages(getInitialMessages(lang));
     setActiveConversationId(null);
     setSidebarOpen(false);
+    if (user) void loadConversations();
+  }
+
+  function handleLanguageChange(nextLanguage: LanguageMode) {
+    if (nextLanguage === language) return;
+    requestIdRef.current += 1;
+    setLoading(false);
+    setError("");
+    setInput("");
+    setLanguage(nextLanguage);
+    const lang = nextLanguage === "auto" ? "english" : nextLanguage;
+    setMessages(getInitialMessages(lang));
+    setActiveConversationId(null);
+    setSidebarOpen(false);
+    lastUserMessageRef.current = null;
+    lastAssistantMessageRef.current = null;
     if (user) void loadConversations();
   }
 
@@ -772,7 +830,7 @@ export default function Home() {
             <button className="menu-toggle" onClick={() => setSidebarOpen(true)} aria-label="Menu">
               Menu
             </button>
-            <h1>KisanSahayak AI</h1>
+            <h1>Kisaan Sahayak AI</h1>
           </div>
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button className="settings-toggle" onClick={() => setAuthModalOpen(true)} aria-label="Profile">
@@ -783,13 +841,11 @@ export default function Home() {
             </button>
             <button
               className="settings-toggle"
-              onClick={() =>
-                setLanguage((prev) => {
-                  const idx = languageOptions.findIndex((opt) => opt.value === prev);
-                  const next = languageOptions[(idx + 1) % languageOptions.length];
-                  return next.value;
-                })
-              }
+              onClick={() => {
+                const idx = languageOptions.findIndex((opt) => opt.value === language);
+                const next = languageOptions[(idx + 1) % languageOptions.length];
+                handleLanguageChange(next.value);
+              }}
               aria-label="Language"
             >
               {language === "auto" ? "AUTO" : language.slice(0, 2).toUpperCase()}
@@ -798,6 +854,17 @@ export default function Home() {
         </header>
 
         <div className="main-content">
+          <section className="hero">
+            <div className="hero-copy">
+              <p className="hero-kicker">Kisaan Sahayak</p>
+              <h2 className="hero-title">{t.heroTitle}</h2>
+              <p className="hero-subtitle">{t.heroSubtitle}</p>
+            </div>
+            <div className="hero-images" aria-hidden="true">
+              <img src="/farm-field.svg" alt="" />
+              <img src="/farmer-tools.svg" alt="" />
+            </div>
+          </section>
           <div className="chat-container" id="chatContainer">
             {messages.map((msg, idx) => (
               <div key={`${msg.role}-${idx}`} className={`flex ${msg.role}`} style={{ marginBottom: "1rem" }}>
@@ -865,7 +932,7 @@ export default function Home() {
         <div className="space-y-4">
           <div className="setting-group">
             <p>{t.language}</p>
-            <select value={language} onChange={(e) => setLanguage(e.target.value as LanguageMode)}>
+            <select value={language} onChange={(e) => handleLanguageChange(e.target.value as LanguageMode)}>
               {languageOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}

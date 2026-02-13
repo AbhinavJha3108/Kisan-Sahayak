@@ -1,4 +1,4 @@
-# Kisan Sahayak Next (Parallel Build)
+# Kisaan Sahayak Next (Parallel Build)
 
 Fresh Next.js build kept separate from the Flask app.
 

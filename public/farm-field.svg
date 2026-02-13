@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-label="Farming fields">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#bfe6ff" />
+      <stop offset="1" stop-color="#ffffff" />
+    </linearGradient>
+    <linearGradient id="field" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#7cb342" />
+      <stop offset="1" stop-color="#558b2f" />
+    </linearGradient>
+    <linearGradient id="soil" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#8d6e63" />
+      <stop offset="1" stop-color="#6d4c41" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="300" fill="url(#sky)" />
+  <circle cx="520" cy="90" r="48" fill="#ffcc80" />
+  <rect y="300" width="640" height="180" fill="url(#field)" />
+  <path d="M0 320 C120 300 220 310 320 330 C430 360 520 380 640 400 L640 480 L0 480 Z" fill="url(#soil)" />
+  <path d="M0 360 C140 330 250 340 360 365 C470 395 560 420 640 445" fill="none" stroke="#d7ccc8" stroke-width="12" opacity="0.35" />
+  <path d="M0 390 C140 365 260 375 380 400 C500 425 570 445 640 460" fill="none" stroke="#c8e6c9" stroke-width="10" opacity="0.5" />
+  <rect x="60" y="250" width="90" height="60" fill="#8d6e63" rx="6" />
+  <rect x="70" y="220" width="70" height="40" fill="#6d4c41" rx="6" />
+  <rect x="92" y="260" width="25" height="50" fill="#ffecb3" />
+</svg>

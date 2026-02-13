@@ -96,6 +96,33 @@ function detectLanguageFromText(text: string): LanguageMode {
   return "hindi";
 }
 
+function estimateComplexity(text: string): "low" | "medium" | "high" {
+  const cleaned = (text || "").trim();
+  if (!cleaned) return "low";
+
+  const length = cleaned.length;
+  const questionMarks = (cleaned.match(/\?/g) || []).length;
+  const commas = (cleaned.match(/[,;]/g) || []).length;
+  const conjunctions = (cleaned.match(/\b(and|or|but|then|because|so|also)\b/gi) || []).length;
+  const topicHints = (cleaned.match(/\b(weather|rain|soil|fertilizer|pest|disease|irrigation|yield|variety|spray|dose|market)\b/gi) || []).length;
+
+  let score = 0;
+  if (length > 240) score += 3;
+  else if (length > 160) score += 2;
+  else if (length > 90) score += 1;
+
+  if (questionMarks >= 2) score += 2;
+  else if (questionMarks === 1) score += 1;
+
+  if (commas >= 3) score += 1;
+  if (conjunctions >= 2) score += 1;
+  if (topicHints >= 2) score += 1;
+
+  if (score >= 5) return "high";
+  if (score >= 2) return "medium";
+  return "low";
+}
+
 function wantsDetail(text: string): boolean {
   const t = (text || "").toLowerCase();
   return [
@@ -207,13 +234,19 @@ function buildDhenuPrompt(
   detailRequested = false
 ): string {
   const locationLine = location ? `Location: ${location}.` : "Location not available.";
-  const detailLine = detailRequested || wantsDetail(userMessage)
-    ? "The user asked for detail. Expand and group advice into 3-5 short bullet points with 1 short paragraph each."
-    : "Keep it concise (60-90 words). Use 3-5 short bullet points. Expand only if asked.";
-  return `You are Kisan Sahayak, an agricultural advisor for Indian farmers.
+  const complexity = estimateComplexity(userMessage);
+  const detailLine =
+    detailRequested || wantsDetail(userMessage)
+      ? "Provide detailed guidance in 5-7 bullet points. Each bullet should be 2-3 sentences."
+      : complexity === "high"
+        ? "Provide detailed guidance in 5-7 bullet points. Each bullet should be 2-3 sentences (140-220 words total)."
+        : complexity === "medium"
+          ? "Provide helpful detail in 4-6 bullet points. Each bullet should be 2-3 sentences (100-160 words total)."
+          : "Provide clear guidance in 3-5 bullet points. Each bullet should be 2-3 sentences (80-120 words total).";
+  return `You are Kisaan Sahayak, an agricultural advisor for Indian farmers.
 
 Write in a friendly, practical tone.
-Use 3-5 short bullet points. Each bullet is a short paragraph (2-3 sentences).
+Use 3-7 short bullet points depending on question complexity. Each bullet is a short paragraph (2-3 sentences).
 Use plain text bullets like \"- \".
 Avoid unsafe fixed pesticide dosage claims; advise label-based use and local agri officer confirmation.
 ${languageInstruction(language)}
@@ -231,9 +264,15 @@ function buildGeminiRefinePrompt(
   detailRequested = false
 ): string {
   const locationLine = location ? `Location: ${location}.` : "Location not available.";
-  const detailLine = detailRequested || wantsDetail(userMessage)
-    ? "Expand the draft. Use 3-5 short bullet points with a short paragraph for each point."
-    : "Keep it concise (60-90 words). Use 3-5 short bullet points.";
+  const complexity = estimateComplexity(userMessage);
+  const detailLine =
+    detailRequested || wantsDetail(userMessage)
+      ? "Expand the draft. Use 5-7 short bullet points with 2-3 sentences each."
+      : complexity === "high"
+        ? "Provide detailed guidance (140-220 words). Use 5-7 short bullet points with 2-3 sentences each."
+        : complexity === "medium"
+          ? "Provide helpful detail (100-160 words). Use 4-6 short bullet points with 2-3 sentences each."
+          : "Provide clear guidance (80-120 words). Use 3-5 short bullet points with 2-3 sentences each.";
   return `Please refine the draft answer for clarity and usefulness.
 
 ${detailLine}
@@ -248,6 +287,86 @@ ${userMessage}
 
 Draft:
 ${dhenuAnswer}`;
+}
+
+function buildGeminiRouterPrompt(
+  userMessage: string,
+  language: LanguageMode,
+  location?: string
+): string {
+  const locationLine = location ? `Location: ${location}.` : "Location not available.";
+  return `You are deciding whether to consult an agriculture specialist model (Dhenu).
+
+Return ONLY strict JSON with these keys:
+- "dhenu_needed": boolean
+- "dhenu_question": string (empty string if not needed)
+
+Rules:
+- Dhenu is only for agriculture domain knowledge.
+- If the question is mixed, extract only the agriculture part for Dhenu.
+- If not needed, set "dhenu_question" to "".
+- Write "dhenu_question" in the same language as the user.
+- Do not add any extra keys or commentary.
+
+${languageInstruction(language)}
+${locationLine}
+
+User question:
+${userMessage}`;
+}
+
+function extractRouterResult(reply: string): { dhenu_needed: boolean; dhenu_question: string } {
+  const fallback = { dhenu_needed: false, dhenu_question: "" };
+  if (!reply || typeof reply !== "string") return fallback;
+
+  const direct = reply.trim();
+  const jsonMatch = direct.match(/\{[\s\S]*\}/);
+  const candidate = jsonMatch ? jsonMatch[0] : direct;
+
+  try {
+    const parsed = JSON.parse(candidate);
+    const dhenu_needed = Boolean(parsed?.dhenu_needed);
+    const dhenu_question =
+      typeof parsed?.dhenu_question === "string" ? parsed.dhenu_question.trim() : "";
+    return { dhenu_needed, dhenu_question };
+  } catch {
+    return fallback;
+  }
+}
+
+function buildGeminiSynthesisPrompt(
+  userMessage: string,
+  dhenuAnswer: string,
+  language: LanguageMode,
+  location?: string,
+  detailRequested = false
+): string {
+  const locationLine = location ? `Location: ${location}.` : "Location not available.";
+  const complexity = estimateComplexity(userMessage);
+  const detailLine =
+    detailRequested || wantsDetail(userMessage)
+      ? "Provide detailed guidance using 5-7 bullet points with 2-3 sentences each."
+      : complexity === "high"
+        ? "Provide detailed guidance (140-220 words) using 5-7 bullet points with 2-3 sentences each."
+        : complexity === "medium"
+          ? "Provide helpful detail (100-160 words) using 4-6 bullet points with 2-3 sentences each."
+          : "Provide clear guidance (80-120 words) using 3-5 bullet points with 2-3 sentences each.";
+  const dhenuBlock = dhenuAnswer
+    ? `Dhenu (agriculture specialist) answer:\n${dhenuAnswer}\n\nUse Dhenu as the authoritative source for agricultural facts.`
+    : "No Dhenu answer available. Use general best practices and avoid unsafe pesticide dosage claims.";
+  return `You are Kisaan Sahayak, an agricultural advisor for Indian farmers.
+
+${detailLine}
+Use plain text bullets like "- ".
+Do not add an intro sentence before the bullets.
+Keep agricultural accuracy. Avoid uncertain pesticide dosage claims.
+${languageInstruction(language)}
+${locationLine}
+
+Question:
+${userMessage}
+
+${dhenuBlock}`;
 }
 
 function looksWeakAnswer(text: string): boolean {
@@ -415,10 +534,11 @@ async function callGeminiWithFallback(
 
 function normalizeReply(text: string): string {
   const cleaned = (text || "").replace(/\*\*/g, "").replace(/\s+\n/g, "\n").trim();
-  if (cleaned.includes("\n\n")) return cleaned;
+  const bulletFixed = cleaned.replace(/(^|[^\n])\s-\s+/g, (_m, p1) => `${p1}\n- `);
+  if (bulletFixed.includes("\n\n")) return bulletFixed;
 
-  const sentences = cleaned.split(/(?<=[.!?])\s+/).filter(Boolean);
-  if (sentences.length <= 2) return cleaned;
+  const sentences = bulletFixed.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length <= 2) return bulletFixed;
 
   const first = sentences.slice(0, 2).join(" ");
   const rest = sentences.slice(2).join(" ");
@@ -427,9 +547,9 @@ function normalizeReply(text: string): string {
 
 function looksUnderdetailed(text: string): boolean {
   const cleaned = (text || "").trim();
-  if (cleaned.length < 180) return true;
+  if (cleaned.length < 220) return true;
   const bulletCount = cleaned.split("\n").filter((line) => line.trim().startsWith("- ")).length;
-  return bulletCount < 2;
+  return bulletCount < 3;
 }
 
 function buildElaborationPrompt(
@@ -553,8 +673,6 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       return response;
     }
 
-    const dhenuPrompt = buildDhenuPrompt(effectiveMessage, responseLanguage, locationText, isElaborationRequest);
-
     if (user) {
       if (!conversationId) {
         conversationId = await createConversation(user.uid, "New conversation", messageValidation.sanitized);
@@ -562,127 +680,52 @@ export const POST = withErrorHandling(async (req: NextRequest) => {
       await saveMessage(user.uid, conversationId, "user", messageValidation.sanitized);
     }
 
-    if (mode === "dhenu_only") {
-      const dhenuReply = await callDhenu(dhenuPrompt);
-      const refineResult = await callGeminiWithFallback(
-        buildGeminiRefinePrompt(
-          effectiveMessage,
-          dhenuReply,
-          responseLanguage,
-          locationText,
-          isElaborationRequest
-        ),
-        { maxOutputTokens: isElaborationRequest ? 1000 : 400 }
-      );
-      const response = NextResponse.json({
-        reply: normalizeReply(refineResult.reply),
-        modeUsed: mode,
-        provider: "dhenu+gemini_refine",
-        geminiModel: refineResult.model,
-        isAuthenticated: Boolean(user),
-        user: user || null,
-        guest_remaining: isGuest ? Math.max(0, guestLimit - (guestCount + 1)) : null,
-        conversation_id: user ? conversationId : undefined
-      });
-      if (isGuest) {
-        response.cookies.set("guest_count", String(guestCount + 1), { httpOnly: true, sameSite: "lax", path: "/" });
+    const routerResult = await callGeminiWithFallback(
+      buildGeminiRouterPrompt(effectiveMessage, responseLanguage, locationText),
+      { maxOutputTokens: 200 }
+    );
+    const routing = extractRouterResult(routerResult.reply);
+    let dhenuAnswer = "";
+    let provider = "gemini_only";
+
+    if (routing.dhenu_needed && routing.dhenu_question) {
+      try {
+        dhenuAnswer = await callDhenu(buildDhenuPrompt(routing.dhenu_question, responseLanguage, locationText));
+        provider = "gemini_router+dhenu";
+      } catch {
+        dhenuAnswer = "";
+        provider = "gemini_router+dhenu_failed";
       }
-      if (user) {
-        await saveMessage(user.uid, conversationId, "assistant", normalizeReply(refineResult.reply));
-      }
-      return response;
+    } else {
+      provider = "gemini_router_only";
     }
 
-    if (mode === "hybrid_full") {
-      const rewrittenResult = await callGeminiWithFallback(
-        `Rewrite this farmer question with better grammar but same meaning. ${languageInstruction(responseLanguage)}\n\n${effectiveMessage}`
-      );
-      const dhenuReply = await callDhenu(buildDhenuPrompt(rewrittenResult.reply, responseLanguage, locationText));
-      const refineResult = await callGeminiWithFallback(
-        buildGeminiRefinePrompt(
-          effectiveMessage,
-          dhenuReply,
-          responseLanguage,
-          locationText,
-          isElaborationRequest
-        ),
-        { maxOutputTokens: isElaborationRequest ? 1000 : 400 }
-      );
-      const response = NextResponse.json({
-        reply: normalizeReply(refineResult.reply),
-        modeUsed: mode,
-        provider: "dhenu+gemini",
-        geminiModel: refineResult.model,
-        isAuthenticated: Boolean(user),
-        user: user || null,
-        guest_remaining: isGuest ? Math.max(0, guestLimit - (guestCount + 1)) : null,
-        conversation_id: user ? conversationId : undefined
-      });
-      if (isGuest) {
-        response.cookies.set("guest_count", String(guestCount + 1), { httpOnly: true, sameSite: "lax", path: "/" });
-      }
-      if (user) {
-        await saveMessage(user.uid, conversationId, "assistant", normalizeReply(refineResult.reply));
-      }
-      return response;
-    }
+    const synthesis = await callGeminiWithFallback(
+      buildGeminiSynthesisPrompt(
+        effectiveMessage,
+        dhenuAnswer,
+        responseLanguage,
+        locationText,
+        isElaborationRequest
+      ),
+      { maxOutputTokens: isElaborationRequest ? 1000 : 400 }
+    );
 
-    try {
-      const dhenuReply = await callDhenu(dhenuPrompt);
-      const refinedResult = await callGeminiWithFallback(
-        buildGeminiRefinePrompt(
-          effectiveMessage,
-          dhenuReply,
-          responseLanguage,
-          locationText,
-          isElaborationRequest
-        ),
-        { maxOutputTokens: isElaborationRequest ? 1000 : 400 }
-      );
-      const response = NextResponse.json({
-        reply: normalizeReply(refinedResult.reply),
-        modeUsed: mode,
-        provider: "dhenu+gemini_refine",
-        geminiModel: refinedResult.model,
-        isAuthenticated: Boolean(user),
-        user: user || null,
-        guest_remaining: isGuest ? Math.max(0, guestLimit - (guestCount + 1)) : null,
-        conversation_id: user ? conversationId : undefined
-      });
-      if (isGuest) {
-        response.cookies.set("guest_count", String(guestCount + 1), { httpOnly: true, sameSite: "lax", path: "/" });
-      }
-      if (user) {
-        await saveMessage(user.uid, conversationId, "assistant", normalizeReply(refinedResult.reply));
-      }
-      return response;
-    } catch {
-      const fallbackResult = await callGeminiWithFallback(
-        buildGeminiRefinePrompt(
-          effectiveMessage,
-          "Provide a direct, practical answer to the farmer's question based on general agronomy best practices.",
-          responseLanguage,
-          locationText,
-          isElaborationRequest
-        ),
-        { maxOutputTokens: isElaborationRequest ? 1000 : 400 }
-      );
-      const response = NextResponse.json({
-        reply: normalizeReply(fallbackResult.reply),
-        modeUsed: mode,
-        provider: "gemini_fallback",
-        geminiModel: fallbackResult.model,
-        isAuthenticated: Boolean(user),
-        user: user || null,
-        guest_remaining: isGuest ? Math.max(0, guestLimit - (guestCount + 1)) : null,
-        conversation_id: user ? conversationId : undefined
-      });
-      if (isGuest) {
-        response.cookies.set("guest_count", String(guestCount + 1), { httpOnly: true, sameSite: "lax", path: "/" });
-      }
-      if (user) {
-        await saveMessage(user.uid, conversationId, "assistant", normalizeReply(fallbackResult.reply));
-      }
-      return response;
+    const response = NextResponse.json({
+      reply: normalizeReply(synthesis.reply),
+      modeUsed: mode,
+      provider,
+      geminiModel: synthesis.model,
+      isAuthenticated: Boolean(user),
+      user: user || null,
+      guest_remaining: isGuest ? Math.max(0, guestLimit - (guestCount + 1)) : null,
+      conversation_id: user ? conversationId : undefined
+    });
+    if (isGuest) {
+      response.cookies.set("guest_count", String(guestCount + 1), { httpOnly: true, sameSite: "lax", path: "/" });
     }
+    if (user) {
+      await saveMessage(user.uid, conversationId, "assistant", normalizeReply(synthesis.reply));
+    }
+    return response;
 });
