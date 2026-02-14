@@ -13,7 +13,7 @@ const csp = [
   isProd
     ? "script-src 'self' 'unsafe-inline'"
     : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "connect-src 'self' https://generativelanguage.googleapis.com https://api.dhenu.ai https://api.geoapify.com https://nominatim.openstreetmap.org"
+  "connect-src 'self' https://generativelanguage.googleapis.com https://api.dhenu.ai https://api.geoapify.com https://nominatim.openstreetmap.org https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://firestore.googleapis.com"
 ].join("; ");
 
 export function middleware(req: NextRequest) {
